@@ -1,5 +1,6 @@
-/* eslint-disable no-console */
 const User = require('../models/users');
+
+// const SERVER_ERROR = 500;
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -8,9 +9,9 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUser = (req, res) => {
-  User.findById(req.params.id)
+  User.findById(req.params.userId)
     .then((user) => res.send({ data: user }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch(() => res.status(404).send({ message: 'Пользовтель не найден' }));
 };
 
 module.exports.createUser = (req, res) => {
@@ -18,7 +19,7 @@ module.exports.createUser = (req, res) => {
 
   User.create({ name, about, avatar })
     .then((user) => res.send({ data: user }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch(() => res.status(400).send({ message: 'Переданы некоректные данные' }));
 };
 
 module.exports.updateUserInfo = (req, res) => {
@@ -36,7 +37,7 @@ module.exports.updateUserInfo = (req, res) => {
     },
   )
     .then((user) => res.send(user))
-    .catch((err) => res.send(err));
+    .catch(() => res.status(400).send({ message: 'Переданы некоректные данные' }));
 };
 
 module.exports.updateAvatar = (req, res) => {
@@ -51,5 +52,5 @@ module.exports.updateAvatar = (req, res) => {
     },
   )
     .then((user) => res.send(user))
-    .catch((err) => res.send(err));
+    .catch(() => res.status(400).send({ message: 'Переданы некоректные данные' }));
 };
