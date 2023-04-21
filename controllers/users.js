@@ -10,10 +10,13 @@ module.exports.getUsers = (req, res) => {
 module.exports.getUser = (req, res) => {
   User.findById(req.params.userId)
     .orFail(() => {
-      throw new NotFound(' Пользователь с указанным _id не найден');
+      throw new NotFound('Пользователь с указанным _id не найден');
     })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Введен некорректный _id' });
+      }
       if (err.status === 404) {
         res.status(err.status).send({ message: err.message });
       } else {
@@ -50,16 +53,16 @@ module.exports.updateUserInfo = (req, res) => {
     },
   )
     .orFail(() => {
-      throw new NotFound(' Пользователь с указанным _id не найден');
+      throw new NotFound('Пользователь с указанным _id не найден');
     })
     .then((user) => res.send(user))
     .catch((err) => {
       const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
       if (err.name === 'ValidationError') {
-        res.status(err.status).send({ message: err.message });
-      }
-      if (err.name === 'ValidationError') {
         res.status(400).send({ message: errorMessage });
+      }
+      if (err.status === 404) {
+        res.status(err.status).send({ message: err.message });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
       }
@@ -78,7 +81,7 @@ module.exports.updateAvatar = (req, res) => {
     },
   )
     .orFail(() => {
-      throw new NotFound(' Пользователь с указанным _id не найден');
+      throw new NotFound('Пользователь с указанным _id не найден');
     })
     .then((user) => res.send(user))
     .catch((err) => {
