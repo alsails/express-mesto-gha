@@ -15,7 +15,9 @@ module.exports.delCard = (req, res) => {
     })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      if (err.status === 404) {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Введен некорректный _id' });
+      } else if (err.status === 404) {
         res.status(err.status).send({ message: err.message });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
