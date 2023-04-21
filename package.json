@@ -9,7 +9,7 @@
     "start": "node app.js",
     "dev": "nodemon app.js"
   },
-  "author": "",
+  "author": "Погонина Мария",
   "license": "ISC",
   "devDependencies": {
     "eslint": "^8.38.0",
