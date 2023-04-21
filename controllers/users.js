@@ -30,7 +30,7 @@ module.exports.createUser = (req, res) => {
     .catch((err) => {
       const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
       if (err.name === 'ValidationError') {
-        res.status(400).send({ errorMessage });
+        res.status(400).send({ message: errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
       }
@@ -59,7 +59,7 @@ module.exports.updateUserInfo = (req, res) => {
         res.status(err.status).send({ message: err.message });
       }
       if (err.name === 'ValidationError') {
-        res.status(400).send({ errorMessage });
+        res.status(400).send({ message: errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
       }
@@ -87,7 +87,7 @@ module.exports.updateAvatar = (req, res) => {
         res.status(err.status).send({ message: err.message });
       }
       if (err.name === 'ValidationError') {
-        res.status(400).send({ errorMessage });
+        res.status(400).send({ message: errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
       }
