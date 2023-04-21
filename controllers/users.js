@@ -1,6 +1,5 @@
 const User = require('../models/users');
-
-// const SERVER_ERROR = 500;
+const NotFound = require('../error/NotFound');
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -10,8 +9,17 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUser = (req, res) => {
   User.findById(req.params.userId)
+    .orFail(() => {
+      throw new NotFound(' Пользователь с указанным _id не найден');
+    })
     .then((user) => res.send({ data: user }))
-    .catch(() => res.status(404).send({ message: 'Пользовтель не найден' }));
+    .catch((err) => {
+      if (err.status === 404) {
+        res.status(err.status).send({ message: err.message });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
 };
 
 module.exports.createUser = (req, res) => {
@@ -19,25 +27,43 @@ module.exports.createUser = (req, res) => {
 
   User.create({ name, about, avatar })
     .then((user) => res.send({ data: user }))
-    .catch(() => res.status(400).send({ message: 'Переданы некоректные данные' }));
+    .catch((err) => {
+      const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
+      if (err.status === 400) {
+        res.status(400).send({ errorMessage });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
 };
 
 module.exports.updateUserInfo = (req, res) => {
+  const { name, about } = req.body;
   const userId = req.user._id;
   User.findByIdAndUpdate(
     userId,
-    {
-      name: req.body.name,
-      about: req.body.about,
-    },
+    { name, about },
     {
       new: true,
       runValidators: true,
       upsert: true,
     },
   )
+    .orFail(() => {
+      throw new NotFound(' Пользователь с указанным _id не найден');
+    })
     .then((user) => res.send(user))
-    .catch(() => res.status(400).send({ message: 'Переданы некоректные данные' }));
+    .catch((err) => {
+      const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
+      if (err.status === 404) {
+        res.status(err.status).send({ message: err.message });
+      }
+      if (err.status === 400) {
+        res.status(400).send({ errorMessage });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
 };
 
 module.exports.updateAvatar = (req, res) => {
@@ -51,6 +77,19 @@ module.exports.updateAvatar = (req, res) => {
       upsert: true,
     },
   )
+    .orFail(() => {
+      throw new NotFound(' Пользователь с указанным _id не найден');
+    })
     .then((user) => res.send(user))
-    .catch(() => res.status(400).send({ message: 'Переданы некоректные данные' }));
+    .catch((err) => {
+      const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
+      if (err.status === 404) {
+        res.status(err.status).send({ message: err.message });
+      }
+      if (err.status === 400) {
+        res.status(400).send({ errorMessage });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
 };

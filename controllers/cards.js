@@ -1,4 +1,5 @@
 const Card = require('../models/cards');
+const NotFound = require('../error/NotFound');
 
 module.exports.getCards = (req, res) => {
   Card.find({})
@@ -9,8 +10,17 @@ module.exports.getCards = (req, res) => {
 
 module.exports.delCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
+    .orFail(() => {
+      throw new NotFound('Карточка с указанным _id не найдена');
+    })
     .then((card) => res.send({ data: card }))
-    .catch(() => res.status(404).send({ message: 'Карточка не найдена' }));
+    .catch((err) => {
+      if (err.status === 404) {
+        res.status(err.status).send({ message: err.message });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
 };
 
 module.exports.createCard = (req, res) => {
@@ -18,7 +28,14 @@ module.exports.createCard = (req, res) => {
 
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.send({ data: card }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
+      if (err.status === 400) {
+        res.status(400).send({ errorMessage });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
 };
 
 module.exports.likeCard = (req, res) => {
@@ -28,8 +45,21 @@ module.exports.likeCard = (req, res) => {
     { new: true },
   )
     .populate(['owner', 'likes'])
+    .orFail(() => {
+      throw new NotFound('Карточка с указанным _id не найдена');
+    })
     .then((card) => res.send({ data: card }))
-    .catch(() => res.status(404).send({ message: 'Карточка не найдена' }));
+    .catch((err) => {
+      const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
+      if (err.status === 404) {
+        res.status(err.status).send({ message: err.message });
+      }
+      if (err.status === 400) {
+        res.status(400).send({ errorMessage });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
 };
 
 module.exports.dislikeCard = (req, res) => {
@@ -39,6 +69,19 @@ module.exports.dislikeCard = (req, res) => {
     { new: true },
   )
     .populate(['owner', 'likes'])
+    .orFail(() => {
+      throw new NotFound('Карточка с указанным _id не найдена');
+    })
     .then((card) => res.send({ data: card }))
-    .catch(() => res.status(404).send({ message: 'Карточка не найдена' }));
+    .catch((err) => {
+      const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
+      if (err.status === 404) {
+        res.status(err.status).send({ message: err.message });
+      }
+      if (err.status === 400) {
+        res.status(400).send({ errorMessage });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
 };
