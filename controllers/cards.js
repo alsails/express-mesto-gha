@@ -29,8 +29,8 @@ module.exports.createCard = (req, res) => {
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
       if (err.name === 'ValidationError') {
+        const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
         res.status(400).send({ message: errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
@@ -50,12 +50,13 @@ module.exports.likeCard = (req, res) => {
     })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-      if (err.status === 404) {
-        res.status(err.status).send({ message: err.message });
-      }
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Введен некорректный _id' });
+      } else if (err.name === 'ValidationError') {
+        const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
         res.status(400).send({ message: errorMessage });
+      } else if (err.status === 404) {
+        res.status(err.status).send({ message: err.message });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
       }
@@ -74,12 +75,13 @@ module.exports.dislikeCard = (req, res) => {
     })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-      if (err.status === 404) {
-        res.status(err.status).send({ message: err.message });
-      }
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Введен некорректный _id' });
+      } else if (err.name === 'ValidationError') {
+        const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
         res.status(400).send({ message: errorMessage });
+      } else if (err.status === 404) {
+        res.status(err.status).send({ message: err.message });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
       }

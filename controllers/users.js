@@ -16,8 +16,7 @@ module.exports.getUser = (req, res) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'Введен некорректный _id' });
-      }
-      if (err.status === 404) {
+      } else if (err.status === 404) {
         res.status(err.status).send({ message: err.message });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
@@ -31,8 +30,8 @@ module.exports.createUser = (req, res) => {
   User.create({ name, about, avatar })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
       if (err.name === 'ValidationError') {
+        const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
         res.status(400).send({ message: errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
@@ -57,11 +56,12 @@ module.exports.updateUserInfo = (req, res) => {
     })
     .then((user) => res.send(user))
     .catch((err) => {
-      const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Введен некорректный _id' });
+      } else if (err.name === 'ValidationError') {
+        const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
         res.status(400).send({ message: errorMessage });
-      }
-      if (err.status === 404) {
+      } else if (err.status === 404) {
         res.status(err.status).send({ message: err.message });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
@@ -85,11 +85,12 @@ module.exports.updateAvatar = (req, res) => {
     })
     .then((user) => res.send(user))
     .catch((err) => {
-      const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-      if (err.status === 404) {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Введен некорректный _id' });
+      } else if (err.status === 404) {
         res.status(err.status).send({ message: err.message });
-      }
-      if (err.name === 'ValidationError') {
+      } else if (err.name === 'ValidationError') {
+        const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
         res.status(400).send({ message: errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
