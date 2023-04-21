@@ -1,10 +1,14 @@
 const User = require('../models/users');
 const NotFound = require('../error/NotFound');
 
+const NOT_FOUND = 404;
+const BAD_REQUEST = 400;
+const INTERNET_SERVER_ERROR = 500;
+
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch(() => res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' }));
 };
 
 module.exports.getUser = (req, res) => {
@@ -15,11 +19,11 @@ module.exports.getUser = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Введен некорректный _id' });
-      } else if (err.status === 404) {
-        res.status(err.status).send({ message: err.message });
+        res.status(BAD_REQUEST).send({ message: 'Введен некорректный _id' });
+      } else if (err.status === NOT_FOUND) {
+        res.status(NOT_FOUND).send({ message: err.message });
       } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+        res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' });
       }
     });
 };
@@ -32,9 +36,9 @@ module.exports.createUser = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-        res.status(400).send({ message: errorMessage });
+        res.status(BAD_REQUEST).send({ message: errorMessage });
       } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+        res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' });
       }
     });
 };
@@ -48,7 +52,6 @@ module.exports.updateUserInfo = (req, res) => {
     {
       new: true,
       runValidators: true,
-      upsert: true,
     },
   )
     .orFail(() => {
@@ -57,14 +60,14 @@ module.exports.updateUserInfo = (req, res) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Введен некорректный _id' });
+        res.status(BAD_REQUEST).send({ message: 'Введен некорректный _id' });
       } else if (err.name === 'ValidationError') {
         const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-        res.status(400).send({ message: errorMessage });
-      } else if (err.status === 404) {
-        res.status(err.status).send({ message: err.message });
+        res.status(BAD_REQUEST).send({ message: errorMessage });
+      } else if (err.status === NOT_FOUND) {
+        res.status(NOT_FOUND).send({ message: err.message });
       } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+        res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' });
       }
     });
 };
@@ -77,7 +80,6 @@ module.exports.updateAvatar = (req, res) => {
     {
       new: true,
       runValidators: true,
-      upsert: true,
     },
   )
     .orFail(() => {
@@ -86,14 +88,14 @@ module.exports.updateAvatar = (req, res) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Введен некорректный _id' });
-      } else if (err.status === 404) {
-        res.status(err.status).send({ message: err.message });
+        res.status(BAD_REQUEST).send({ message: 'Введен некорректный _id' });
+      } else if (err.status === NOT_FOUND) {
+        res.status(NOT_FOUND).send({ message: err.message });
       } else if (err.name === 'ValidationError') {
         const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-        res.status(400).send({ message: errorMessage });
+        res.status(BAD_REQUEST).send({ message: errorMessage });
       } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+        res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' });
       }
     });
 };

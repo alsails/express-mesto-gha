@@ -1,11 +1,14 @@
 const Card = require('../models/cards');
 const NotFound = require('../error/NotFound');
 
+const NOT_FOUND = 404;
+const BAD_REQUEST = 400;
+const INTERNET_SERVER_ERROR = 500;
+
 module.exports.getCards = (req, res) => {
   Card.find({})
-    .populate(['owner', 'likes'])
     .then((cards) => res.send({ data: cards }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch(() => res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' }));
 };
 
 module.exports.delCard = (req, res) => {
@@ -16,11 +19,11 @@ module.exports.delCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Введен некорректный _id' });
-      } else if (err.status === 404) {
-        res.status(err.status).send({ message: err.message });
+        res.status(BAD_REQUEST).send({ message: 'Введен некорректный _id' });
+      } else if (err.status === NOT_FOUND) {
+        res.status(NOT_FOUND).send({ message: err.message });
       } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+        res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' });
       }
     });
 };
@@ -33,9 +36,9 @@ module.exports.createCard = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-        res.status(400).send({ message: errorMessage });
+        res.status(BAD_REQUEST).send({ message: errorMessage });
       } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+        res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' });
       }
     });
 };
@@ -53,14 +56,14 @@ module.exports.likeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Введен некорректный _id' });
+        res.status(BAD_REQUEST).send({ message: 'Введен некорректный _id' });
       } else if (err.name === 'ValidationError') {
         const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-        res.status(400).send({ message: errorMessage });
-      } else if (err.status === 404) {
-        res.status(err.status).send({ message: err.message });
+        res.status(BAD_REQUEST).send({ message: errorMessage });
+      } else if (err.status === NOT_FOUND) {
+        res.status(NOT_FOUND).send({ message: err.message });
       } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+        res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' });
       }
     });
 };
@@ -78,14 +81,14 @@ module.exports.dislikeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Введен некорректный _id' });
+        res.status(BAD_REQUEST).send({ message: 'Введен некорректный _id' });
       } else if (err.name === 'ValidationError') {
         const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-        res.status(400).send({ message: errorMessage });
-      } else if (err.status === 404) {
-        res.status(err.status).send({ message: err.message });
+        res.status(BAD_REQUEST).send({ message: errorMessage });
+      } else if (err.status === NOT_FOUND) {
+        res.status(NOT_FOUND).send({ message: err.message });
       } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+        res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' });
       }
     });
 };
