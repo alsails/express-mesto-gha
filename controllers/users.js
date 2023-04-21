@@ -29,7 +29,7 @@ module.exports.createUser = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-      if (err.status === 400) {
+      if (err.name === 'ValidationError') {
         res.status(400).send({ errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
@@ -55,10 +55,10 @@ module.exports.updateUserInfo = (req, res) => {
     .then((user) => res.send(user))
     .catch((err) => {
       const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-      if (err.status === 404) {
+      if (err.name === 'ValidationError') {
         res.status(err.status).send({ message: err.message });
       }
-      if (err.status === 400) {
+      if (err.name === 'ValidationError') {
         res.status(400).send({ errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
@@ -86,7 +86,7 @@ module.exports.updateAvatar = (req, res) => {
       if (err.status === 404) {
         res.status(err.status).send({ message: err.message });
       }
-      if (err.status === 400) {
+      if (err.name === 'ValidationError') {
         res.status(400).send({ errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });

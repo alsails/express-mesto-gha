@@ -30,7 +30,7 @@ module.exports.createCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-      if (err.status === 400) {
+      if (err.name === 'ValidationError') {
         res.status(400).send({ errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
@@ -54,7 +54,7 @@ module.exports.likeCard = (req, res) => {
       if (err.status === 404) {
         res.status(err.status).send({ message: err.message });
       }
-      if (err.status === 400) {
+      if (err.name === 'ValidationError') {
         res.status(400).send({ errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
@@ -78,7 +78,7 @@ module.exports.dislikeCard = (req, res) => {
       if (err.status === 404) {
         res.status(err.status).send({ message: err.message });
       }
-      if (err.status === 400) {
+      if (err.name === 'ValidationError') {
         res.status(400).send({ errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
