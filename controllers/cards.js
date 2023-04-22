@@ -11,12 +11,40 @@ module.exports.getCards = (req, res) => {
     .catch(() => res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' }));
 };
 
+// module.exports.delCard = (req, res) => {
+//   Card.findByIdAndRemove(req.params.cardId)
+//     .orFail(() => {
+//       throw new NotFound('Карточка с указанным _id не найдена');
+//     })
+//     .then((card) => res.send({ data: card }))
+//     .catch((err) => {
+//       if (err.name === 'CastError') {
+//         res.status(BAD_REQUEST).send({ message: 'Введен некорректный _id' });
+//       } else if (err.status === NOT_FOUND) {
+//         res.status(NOT_FOUND).send({ message: err.message });
+//       } else {
+//         res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+//       }
+//     });
+// };
+
 module.exports.delCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findById(req.params.cardId)
     .orFail(() => {
       throw new NotFound('Карточка с указанным _id не найдена');
     })
-    .then((card) => res.send({ data: card }))
+    // eslint-disable-next-line consistent-return
+    .then((card) => {
+      if (!card.owner.equals(req.user._id)) {
+        res.status(401).send({ message: 'Невозможно удалить чужую карточку' });
+      } else {
+        Card.deleteOne(card)
+          .then(() => {
+            res.send(card);
+          })
+          .catch(() => res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' }));
+      }
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(BAD_REQUEST).send({ message: 'Введен некорректный _id' });
