@@ -11,23 +11,6 @@ module.exports.getCards = (req, res) => {
     .catch(() => res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' }));
 };
 
-// module.exports.delCard = (req, res) => {
-//   Card.findByIdAndRemove(req.params.cardId)
-//     .orFail(() => {
-//       throw new NotFound('Карточка с указанным _id не найдена');
-//     })
-//     .then((card) => res.send({ data: card }))
-//     .catch((err) => {
-//       if (err.name === 'CastError') {
-//         res.status(BAD_REQUEST).send({ message: 'Введен некорректный _id' });
-//       } else if (err.status === NOT_FOUND) {
-//         res.status(NOT_FOUND).send({ message: err.message });
-//       } else {
-//         res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' });
-//       }
-//     });
-// };
-
 module.exports.delCard = (req, res) => {
   Card.findById(req.params.cardId)
     .orFail(() => {
