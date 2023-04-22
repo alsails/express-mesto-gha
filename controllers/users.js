@@ -43,16 +43,19 @@ module.exports.getUserById = (req, res, next) => {
 };
 
 module.exports.createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
   bcrypt
-    .hash(req.body.password, 10)
+    .hash(password, 10)
     .then((hash) => User.create({
-      name: req.body.name,
-      about: req.body.about,
-      avatar: req.body.avatar,
-      email: req.body.email,
-      password: hash,
+      name, about, avatar, email, password: hash,
     }))
-    .then((user) => res.send({ data: user }))
+    .then(() => res.send({
+      data: {
+        name, about, avatar, email,
+      },
+    }))
     .catch((err) => {
       if (err.code === 11000) {
         next(new Conflict('Введеный email уже зарегистрирован'));
