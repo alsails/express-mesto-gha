@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/users');
 const NotFound = require('../error/NotFound');
-const BadRequest = require('../error/NotFound');
+const BadRequest = require('../error/BadRequest');
 const NotAuthenticated = require('../error/NotAuthenticated');
 const Conflict = require('../error/Conflict');
 
@@ -36,7 +36,6 @@ module.exports.getUserById = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequest('Введен некорректный _id'));
-        return;
       }
       next(err);
     });
