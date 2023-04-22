@@ -138,8 +138,8 @@ module.exports.login = (req, res, next) => {
       res.cookie('jwt', `Bearer ${token}`, {
         expires: new Date(Date.now() + 24 * 60 * 60 * 1000 * 7),
         httpOnly: true,
-      })
-        .end();
+      });
+      res.send(user);
     })
     .catch((err) => {
       next(new NotAuthenticated(err.message));
