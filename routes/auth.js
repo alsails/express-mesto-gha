@@ -3,7 +3,6 @@ const { celebrate, Joi } = require('celebrate');
 
 const { login, createUser } = require('../controllers/users');
 
-
 router.post(
   '/signup',
   celebrate({
