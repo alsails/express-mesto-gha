@@ -19,7 +19,7 @@ module.exports.delCard = (req, res) => {
     // eslint-disable-next-line consistent-return
     .then((card) => {
       if (!card.owner.equals(req.user._id)) {
-        res.status(401).send({ message: 'Невозможно удалить чужую карточку' });
+        res.status(403).send({ message: 'Невозможно удалить чужую карточку' });
       } else {
         Card.deleteOne(card)
           .then(() => {
