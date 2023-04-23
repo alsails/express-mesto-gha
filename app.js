@@ -27,8 +27,6 @@ app.use(express.urlencoded({ extended: true }));
 
 mongoose
   .connect('mongodb://127.0.0.1/mestodb')
-  .then(() => console.log('БД подключена'))
-  .catch((err) => console.log(err));
 
 app.use(cookieParser());
 
@@ -55,6 +53,4 @@ app.use((err, req, res, next) => {
   next();
 });
 
-app.listen(PORT, () => {
-  console.log('Сервер запущен');
-});
+app.listen(PORT);
