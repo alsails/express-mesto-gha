@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const validator = require('validator');
+
+const NotAuthenticated = require('../error/NotAuthenticated');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -17,11 +20,19 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    validate: {
+      validator: (url) => validator.isURL(url),
+      message: 'Введен некорректный URL',
+    },
   },
   email: {
     type: String,
     required: true,
     index: { unique: true },
+    validate: {
+      validator: (email) => validator.isEmail(email),
+      message: 'Введен некорректный email',
+    },
   },
   password: {
     type: String,
@@ -30,18 +41,17 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// eslint-disable-next-line func-names
-userSchema.statics.findUserByCredentials = function (email, password) {
+userSchema.statics.findUserByCredentials = function findUser(email, password) {
   return this.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error('Введена неверная почта или пароль'));
+        throw new NotAuthenticated('Введена неверная почта или пароль');
       }
 
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            return Promise.reject(new Error('Введена неверная почта или пароль'));
+            throw new NotAuthenticated('Введена неверная почта или пароль');
           }
 
           return user;

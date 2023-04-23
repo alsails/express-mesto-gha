@@ -1,45 +1,39 @@
 const Card = require('../models/cards');
 const NotFound = require('../error/NotFound');
+const Forbidden = require('../error/Forbidden');
+const BadRequest = require('../error/BadRequest');
 
-const NOT_FOUND = 404;
-const BAD_REQUEST = 400;
-const INTERNET_SERVER_ERROR = 500;
-
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.send({ data: cards }))
-    .catch(() => res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' }));
+    .catch(next);
 };
 
-module.exports.delCard = (req, res) => {
+module.exports.delCard = (req, res, next) => {
   Card.findById(req.params.cardId)
     .orFail(() => {
       throw new NotFound('Карточка с указанным _id не найдена');
     })
-    // eslint-disable-next-line consistent-return
     .then((card) => {
       if (!card.owner.equals(req.user._id)) {
-        res.status(403).send({ message: 'Невозможно удалить чужую карточку' });
+        next(new Forbidden('Невозможно удалить чужую карточку'));
       } else {
-        Card.deleteOne(card)
+        card.deleteOne()
           .then(() => {
             res.send(card);
           })
-          .catch(() => res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' }));
+          .catch(next);
       }
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BAD_REQUEST).send({ message: 'Введен некорректный _id' });
-      } else if (err.status === NOT_FOUND) {
-        res.status(NOT_FOUND).send({ message: err.message });
-      } else {
-        res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+        next(new BadRequest('Введен некорректный _id'));
       }
+      next(err);
     });
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
@@ -47,14 +41,13 @@ module.exports.createCard = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-        res.status(BAD_REQUEST).send({ message: errorMessage });
-      } else {
-        res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' });
-      }
+        next(new BadRequest(errorMessage));
+        return;
+      } next(err);
     });
 };
 
-module.exports.likeCard = (req, res) => {
+module.exports.likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -67,19 +60,15 @@ module.exports.likeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BAD_REQUEST).send({ message: 'Введен некорректный _id' });
-      } else if (err.name === 'ValidationError') {
+        next(new BadRequest('Введен некорректный _id'));
+      } if (err.name === 'ValidationError') {
         const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-        res.status(BAD_REQUEST).send({ message: errorMessage });
-      } else if (err.status === NOT_FOUND) {
-        res.status(NOT_FOUND).send({ message: err.message });
-      } else {
-        res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' });
-      }
+        next(new BadRequest(errorMessage));
+      } next(err);
     });
 };
 
-module.exports.dislikeCard = (req, res) => {
+module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -92,14 +81,10 @@ module.exports.dislikeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BAD_REQUEST).send({ message: 'Введен некорректный _id' });
-      } else if (err.name === 'ValidationError') {
+        next(new BadRequest('Введен некорректный _id'));
+      } if (err.name === 'ValidationError') {
         const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-        res.status(BAD_REQUEST).send({ message: errorMessage });
-      } else if (err.status === NOT_FOUND) {
-        res.status(NOT_FOUND).send({ message: err.message });
-      } else {
-        res.status(INTERNET_SERVER_ERROR).send({ message: 'Произошла ошибка' });
-      }
+        next(new BadRequest(errorMessage));
+      } next(err);
     });
 };

@@ -1,7 +1,5 @@
-/* eslint-disable no-console */
 const express = require('express');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
@@ -9,6 +7,7 @@ const { errors } = require('celebrate');
 require('dotenv').config();
 
 const auth = require('./middlewares/auth');
+const NotFound = require('./error/NotFound');
 
 const { PORT = 3000 } = process.env;
 
@@ -23,8 +22,8 @@ const app = express();
 
 app.use(limiter);
 app.use(helmet());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 mongoose
   .connect('mongodb://127.0.0.1/mestodb')
@@ -41,7 +40,7 @@ app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
 app.use('*', (req, res) => {
-  res.status(404).send({ message: 'Страница не найдена' });
+  throw new NotFound('Страница не найдена');
 });
 
 app.use(errors());

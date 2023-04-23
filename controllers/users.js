@@ -18,13 +18,7 @@ module.exports.getUser = (req, res, next) => {
       throw new NotFound('Пользователь с указанным _id не найден');
     })
     .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequest('Введен некорректный _id'));
-        return;
-      }
-      next(err);
-    });
+    .catch(next);
 };
 
 module.exports.getUserById = (req, res, next) => {
@@ -50,11 +44,13 @@ module.exports.createUser = (req, res, next) => {
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
-    .then(() => res.send({
-      data: {
-        name, about, avatar, email,
-      },
-    }))
+    .then((user) => {
+      const userInfo = user.toObject();
+      delete userInfo.password;
+      res.send({
+        data: userInfo,
+      });
+    })
     .catch((err) => {
       if (err.code === 11000) {
         next(new Conflict('Введеный email уже зарегистрирован'));
@@ -86,10 +82,7 @@ module.exports.updateUserInfo = (req, res, next) => {
     })
     .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequest('Введен некорректный _id'));
-        return;
-      } if (err.name === 'ValidationError') {
+      if (err.name === 'ValidationError') {
         const errorMessage = Object.values(err.errors)
           .map((error) => error.message)
           .join('; ');
@@ -114,10 +107,6 @@ module.exports.updateAvatar = (req, res, next) => {
     })
     .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequest('Введен некорректный _id'));
-        return;
-      }
       if (err.name === 'ValidationError') {
         const errorMessage = Object.values(err.errors)
           .map((error) => error.message)
@@ -134,7 +123,7 @@ module.exports.login = (req, res, next) => {
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
-      res.cookie('jwt', `Bearer ${token}`, {
+      res.cookie('jwt', token, {
         expires: new Date(Date.now() + 24 * 60 * 60 * 1000 * 7),
         httpOnly: true,
       });
