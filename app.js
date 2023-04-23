@@ -39,7 +39,7 @@ app.use(auth);
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
-app.use('*', (req, res) => {
+app.use('*', () => {
   throw new NotFound('Страница не найдена');
 });
 
