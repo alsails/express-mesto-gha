@@ -26,7 +26,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 mongoose
-  .connect('mongodb://127.0.0.1/mestodb')
+  .connect('mongodb://127.0.0.1/mestodb');
 
 app.use(cookieParser());
 
