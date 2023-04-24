@@ -1,10 +1,15 @@
+const mongoose = require('mongoose');
+
 const Card = require('../models/cards');
 const NotFound = require('../error/NotFound');
 const Forbidden = require('../error/Forbidden');
 const BadRequest = require('../error/BadRequest');
 
+const { CastError, ValidationError } = mongoose.Error;
+
 module.exports.getCards = (req, res, next) => {
   Card.find({})
+    .populate(['owner', 'likes'])
     .then((cards) => res.send({ data: cards }))
     .catch(next);
 };
@@ -26,7 +31,7 @@ module.exports.delCard = (req, res, next) => {
       }
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name instanceof CastError) {
         next(new BadRequest('Введен некорректный _id'));
       }
       next(err);
@@ -39,7 +44,7 @@ module.exports.createCard = (req, res, next) => {
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name instanceof ValidationError) {
         const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
         next(new BadRequest(errorMessage));
         return;
@@ -59,9 +64,9 @@ module.exports.likeCard = (req, res, next) => {
     })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name instanceof CastError) {
         next(new BadRequest('Введен некорректный _id'));
-      } if (err.name === 'ValidationError') {
+      } if (err.name instanceof ValidationError) {
         const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
         next(new BadRequest(errorMessage));
       } next(err);
@@ -80,9 +85,9 @@ module.exports.dislikeCard = (req, res, next) => {
     })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name instanceof CastError) {
         next(new BadRequest('Введен некорректный _id'));
-      } if (err.name === 'ValidationError') {
+      } if (err.name instanceof ValidationError) {
         const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
         next(new BadRequest(errorMessage));
       } next(err);

@@ -1,22 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
 require('dotenv').config();
 
-const auth = require('./middlewares/auth');
-const NotFound = require('./error/NotFound');
-
-const { PORT = 3000 } = process.env;
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+const { PORT, limiter } = require('./utils/config');
+const handelError = require('./error/HandleError');
 
 const app = express();
 
@@ -30,27 +20,10 @@ mongoose
 
 app.use(cookieParser());
 
-app.use('/', require('./routes/auth'));
-
-app.use(auth);
-
-app.use('/users', require('./routes/users'));
-app.use('/cards', require('./routes/cards'));
-
-app.use('*', () => {
-  throw new NotFound('Страница не найдена');
-});
+app.use('/', require('./routes/index'));
 
 app.use(errors());
 
-app.use((err, req, res, next) => {
-  const { status = 500, message } = err;
-  res.status(status).send({
-    message: status === 500
-      ? 'На сервере произошла ошибка'
-      : message,
-  });
-  next();
-});
+app.use(handelError);
 
 app.listen(PORT);

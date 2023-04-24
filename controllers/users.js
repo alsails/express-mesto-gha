@@ -1,10 +1,21 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+
 const User = require('../models/users');
 const NotFound = require('../error/NotFound');
 const BadRequest = require('../error/BadRequest');
 const NotAuthenticated = require('../error/NotAuthenticated');
 const Conflict = require('../error/Conflict');
+
+const { CastError, ValidationError } = mongoose.Error;
+
+function findUserById(id) {
+  return User.findById(id)
+    .orFail(() => {
+      throw new NotFound('Пользователь с указанным _id не найден');
+    });
+}
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})
@@ -13,22 +24,16 @@ module.exports.getUsers = (req, res, next) => {
 };
 
 module.exports.getUser = (req, res, next) => {
-  User.findById(req.user._id)
-    .orFail(() => {
-      throw new NotFound('Пользователь с указанным _id не найден');
-    })
+  findUserById(req.user._id)
     .then((user) => res.send({ data: user }))
     .catch(next);
 };
 
 module.exports.getUserById = (req, res, next) => {
-  User.findById(req.params.userId)
-    .orFail(() => {
-      throw new NotFound('Пользователь с указанным _id не найден');
-    })
+  findUserById(req.params.userId)
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name instanceof CastError) {
         next(new BadRequest('Введен некорректный _id'));
       }
       next(err);
@@ -56,7 +61,7 @@ module.exports.createUser = (req, res, next) => {
         next(new Conflict('Введеный email уже зарегистрирован'));
         return;
       }
-      if (err.name === 'ValidationError') {
+      if (err.name instanceof ValidationError) {
         const errorMessage = Object.values(err.errors)
           .map((error) => error.message)
           .join('; ');
@@ -66,12 +71,14 @@ module.exports.createUser = (req, res, next) => {
     });
 };
 
-module.exports.updateUserInfo = (req, res, next) => {
-  const { name, about } = req.body;
+function updateInfo(req, res, next) {
   const userId = req.user._id;
-  User.findByIdAndUpdate(
+  const { name, about } = req.body;
+  const { avatar } = req.body;
+  const info = 'name' in req.body && 'about' in req.body ? { name, about } : { avatar };
+  return User.findByIdAndUpdate(
     userId,
-    { name, about },
+    info,
     {
       new: true,
       runValidators: true,
@@ -82,7 +89,7 @@ module.exports.updateUserInfo = (req, res, next) => {
     })
     .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name instanceof ValidationError) {
         const errorMessage = Object.values(err.errors)
           .map((error) => error.message)
           .join('; ');
@@ -90,31 +97,14 @@ module.exports.updateUserInfo = (req, res, next) => {
         return;
       } next(err);
     });
+}
+
+module.exports.updateUserInfo = (req, res, next) => {
+  updateInfo(req, res, next);
 };
 
 module.exports.updateAvatar = (req, res, next) => {
-  const userId = req.user._id;
-  User.findByIdAndUpdate(
-    userId,
-    { avatar: req.body.avatar },
-    {
-      new: true,
-      runValidators: true,
-    },
-  )
-    .orFail(() => {
-      throw new NotFound('Пользователь с указанным _id не найден');
-    })
-    .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        const errorMessage = Object.values(err.errors)
-          .map((error) => error.message)
-          .join('; ');
-        next(new BadRequest(errorMessage));
-        return;
-      } next(err);
-    });
+  updateInfo(req, res, next);
 };
 
 module.exports.login = (req, res, next) => {
