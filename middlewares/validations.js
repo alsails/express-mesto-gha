@@ -1,9 +1,15 @@
 const { celebrate, Joi } = require('celebrate');
 const { regexUrl, regexId } = require('../utils/regex');
 
-module.exports.validationId = celebrate({
+module.exports.validationUserId = celebrate({
   params: Joi.object().keys({
     userId: Joi.string().required().regex(regexId),
+  }),
+});
+
+module.exports.validationCardId = celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().required().regex(regexId),
   }),
 });
 
