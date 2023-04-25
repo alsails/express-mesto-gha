@@ -7,6 +7,7 @@ module.exports = (req, res, next) => {
 
   if (!authorization) {
     next(new NotAuthenticated('Необходима авторизация'));
+    return;
   }
 
   const token = authorization.replace();

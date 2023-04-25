@@ -5,7 +5,6 @@ const mongoose = require('mongoose');
 const User = require('../models/users');
 const NotFound = require('../error/NotFound');
 const BadRequest = require('../error/BadRequest');
-const NotAuthenticated = require('../error/NotAuthenticated');
 const Conflict = require('../error/Conflict');
 
 const { CastError, ValidationError } = mongoose.Error;
@@ -35,8 +34,7 @@ module.exports.getUserById = (req, res, next) => {
     .catch((err) => {
       if (err.name instanceof CastError) {
         next(new BadRequest('Введен некорректный _id'));
-      }
-      next(err);
+      } else next(err);
     });
 };
 
@@ -66,8 +64,7 @@ module.exports.createUser = (req, res, next) => {
           .map((error) => error.message)
           .join('; ');
         next(new BadRequest(errorMessage));
-        return;
-      } next(err);
+      } else next(err);
     });
 };
 
@@ -94,8 +91,7 @@ function updateInfo(req, res, next) {
           .map((error) => error.message)
           .join('; ');
         next(new BadRequest(errorMessage));
-        return;
-      } next(err);
+      } else next(err);
     });
 }
 
@@ -117,9 +113,11 @@ module.exports.login = (req, res, next) => {
         expires: new Date(Date.now() + 24 * 60 * 60 * 1000 * 7),
         httpOnly: true,
       });
-      res.send(user);
+      const userInfo = user.toObject();
+      delete userInfo.password;
+      res.send({
+        data: userInfo,
+      });
     })
-    .catch((err) => {
-      next(new NotAuthenticated(err.message));
-    });
+    .catch(next);
 };

@@ -33,8 +33,7 @@ module.exports.delCard = (req, res, next) => {
     .catch((err) => {
       if (err.name instanceof CastError) {
         next(new BadRequest('Введен некорректный _id'));
-      }
-      next(err);
+      } else next(err);
     });
 };
 
@@ -47,8 +46,7 @@ module.exports.createCard = (req, res, next) => {
       if (err.name instanceof ValidationError) {
         const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
         next(new BadRequest(errorMessage));
-        return;
-      } next(err);
+      } else next(err);
     });
 };
 
@@ -66,10 +64,7 @@ module.exports.likeCard = (req, res, next) => {
     .catch((err) => {
       if (err.name instanceof CastError) {
         next(new BadRequest('Введен некорректный _id'));
-      } if (err.name instanceof ValidationError) {
-        const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-        next(new BadRequest(errorMessage));
-      } next(err);
+      } else next(err);
     });
 };
 
@@ -87,9 +82,6 @@ module.exports.dislikeCard = (req, res, next) => {
     .catch((err) => {
       if (err.name instanceof CastError) {
         next(new BadRequest('Введен некорректный _id'));
-      } if (err.name instanceof ValidationError) {
-        const errorMessage = Object.values(err.errors).map((error) => error.message).join('; ');
-        next(new BadRequest(errorMessage));
-      } next(err);
+      } else next(err);
     });
 };
