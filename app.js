@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const { PORT, limiter } = require('./utils/config');
 const handelError = require('./error/HandleError');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const app = express();
 
@@ -20,7 +21,11 @@ mongoose
 
 app.use(cookieParser());
 
+app.use(requestLogger);
+
 app.use('/', require('./routes/index'));
+
+app.use(errorLogger);
 
 app.use(errors());
 
